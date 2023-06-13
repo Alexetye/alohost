@@ -1,0 +1,126 @@
+����ߺ�d1$����������������������@���s����d�Z�ddlZddlZddlZddlZddlZddlZddlZddlmZm        Z       m
+Z
+mZmZ�ddl
+mZmZ�ddlmZmZmZ�G�dd��d�ZG�d d
+��d
+�ZdS�)ze
+:authors: ALeDo
+:license: Apache License, Version 2.0, see LICENSE file
+
+:copyright: (c) 2023 ALeDo
+�����N)�Any�Union�Optional�List�Tuple����)�HttpReqigetTypes�
+ResponseCodes)�AloHostError�  MixiError�HttpMixiDxErrorc����������������
+���@���s����e�Zd�ZdZdZdZe�d�Ze�d�Z     e�d�Z
+e�d�Zd!d   ed
+eddfd
+d�Z
+edefdd��Zd"dd�Zdedefdd�Zdedee�dee�dee�fdd�Zdedee�dee�deej�fdd�Zdedee�deeeeef�fdd �ZdS�)#�AloHostz�
+    :param alohost_api_token: - Alo Host API access token
+    :param api_version: Current - Alo Host API version
+    :return:
+    g��Q��?zhttps://api.alohost.io/api/z(get|history)$z(create|search|upload)z(update|enable|disable)zdelete$�v3�alohost_api_token�api_version�returnNc�����������������C���s,���||�_�||�_d|�_t���|�_t�d�|�_d�S�)Ng��������Zalohost_api)   r���r����last_request�asyncio�Lock�lock�logging� getLogger�logger)�selfr���r�����r����D���c:\Users\ALexkt\Desktop\Все былое\alohost\alohost\alohost.py�__init__!���s
+���
+zAloHost.__init__c�����������������C���s���d��tj|�j�S�)z Return full Alo Host API URL z{0}{1}/)�formatr
+����BASE_API_URLr����r���r���r���r����full_api_url(���s���zAloHost.full_api_url�
+AloHostMixiDxc�����������������C���s���t�|��S�)z�
+        Return AloHostMixiDx(self)
+        Allows you to access API methods as normal classes
+        
+        Example:
+        >> ch.labels.get(...)
+        )r!���r���r���r���r����get_api-���s���zAloHost.get_api�request_methodc���������������������sb����t�j�|�r
+tjS�t�j�|�rtjS�t�j�|�rtjS�t�j   �|�r%tj
+S�|�j�d|�����tj
+S�)z�
+        Defines HTTP request type by the method name
+        
+        :param request_method: - name of the requested method
+        :return: - HTTP request type
+        z
+Bad request: )r
+����GET_REQUESTS_METHOD�matchr����GET�POST_REQUESTS_METHOD�POST�PUT_REQUESTS_METHOD�PUT�DELETE_REQUESTS_METHOD�DELETEr����warningZBAD_TYPE)r���r#���r���r���r����_get_request_type7���s����zAloHost._get_request_type�request�args�valuesc�������������� �������s>���d}|�j�4�I�dH��=�tjt���|�j��}|dkr!t�|�I�dH��|��|||�I�dH�}t���|�_|�j�       d|�j��d|�����W�d���I�dH��n1�I�dH�sMw���Y��|dur�|j
+}|tjj
+v�rh|���I�dH�}|S�|tjkr�|�j�d��t�d�I�dH��|��|||�I�dH��|S�|�j�d|��d|�����t|���I�dH�|��|S�)   ah��
+        Calling the API method
+
+        :param request: - name of the requested API method
+        :param args: - positional parameters of the API request
+        :param values: - named API request parameters
+        :return: - response to a request in json format
+        :raise: - ApiError:  API request failed with status code 400, 422, 204 or 429
+        Nr���zLast request: z  Method: z%Too many requests! Sleeping 30 sec...�����Something go wrong: z, )r���r
+����REQUEST_PER_SECOND_DELAY�timer���r����sleep�_do_requestr����info�statusr   ����OK�value�jsonZTOO_MATCH_REQUESTr-����method�   exceptionr���)r���r/���r0���r1����responseZ
+request_delayZresponse_status_coder���r���r���r=���J���s.����
+
+(�
+
+��zAloHost.method�method_to_requestc��������������     �������s����d}|���||�I�dH�\}}}}|rdnd} d|�jd�}
+|dkr-dtt�|�d�d�i}nd     |
+d
+<�tj|
+d�4�I�dH��}}|tjkrS|�   |�j
+|�d�|       |���I�dH�}nY|tjkrl|j
+|�j
+|�d�|       |��|d
+�I�dH�}n@|tjkr�|j|�j
+|�d�|       |��|d
+�I�dH�}n'|tjkr�|�|�j
+|�d�|       |���I�dH��n|�j�d|�����td�|���|W��d���I�dH��S�1�I�dH�s�w���Y��dS�)aA��
+        Makes a request to the API
+
+        :param method: - name of the requested API method
+        :param args: - positional parameters of the API request
+        :param values: - named API request parameters
+        :return: - row response to a request
+        :raise: - HttpMixiDxError: No such API method 
+        N�/��zAMozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0)z
+User-agentz
+Alohost-TokenZupload�file�rbzapplication/jsonzContent-Type)�headersz{0}{1})�datar3���zNo such API method: {} )�_split_requestr����openr<����loads�aiohttp�
+ClientSessionr���r&����getr ���r���r(����postr*����putr,����deleter���r>���r���)r���r@���r0���r1���r?����base_api_requested_object�requested_method�additional_params�requested_method_typeZmethod_params_seprE����httpr���r���r���r7���l���s.����
+�
+$
+(
+(
+$0�zAloHost._do_requestc���������������������s�����d}d}d}d}|��d�}t|�dkr|d�}tj}n|\}}|dkr)||f7�}|��|�I�dH�}d�ttt|���}||||fS�)a���
+            Split the request into several parts
+
+            :param request: - name of the requested API method
+            :param args: - positional parameters of the API request
+            :return: - tuple of the obtained parts of the query
+
+            Example:
+                The request -- alo_host.stories.create(1, 'comments', 2) -- is divided into:
+                    > method - stories
+                    > request_method - create
+                    > additional_param - 1/comments/2
+            rB���N�.r���r����searchrA���)   �split�lenr���r&���r.����join�list�map�str)r���r/���r0���rP���rQ���rR���rS���Z
+parts_requestr���r���r���rG�������s����
+
+zAloHost._split_request)r���)r���r!���)�__name__�
+__module__�__qualname__�__doc__r4���r����re�compiler$���r'���r)���r+���r\���r����propertyr ���r"���r���r.���r���rZ����dictr=���rJ����ClientResponser7���r���rG���r���r���r���r���r
+������s ����
+
+
+
+
+
+&("*&r
+���c�������������������@���sd���e�Zd�ZdZdZddedee�ddfdd�Zdedefd        d
+�Z     dedd�fdd�Z
+dejfd
+d�Z
+dS�)r!���zJ
+    Allows you to access API methods via:
+    >>> ch.labels.get(...)
+    )�_alohost�_methodN�alohostr=���r���c�����������������C���s���||�_�||�_d�S��N)Z
+_clubhouserg���)r���rh���r=���r���r���r���r�������s���
+zAloHostMixiDx.__init__c�����������������C���s���|�����dd�S�)z�
+        Return converted the request name to an alternative form
+
+        :param method: - name of the requested API method
+        :return: - alternative form requested name
+        �_�-)�lower�replace�r���r=���r���r���r����_alternative_method_name����s���z&AloHostMixiDx._alternative_method_namec�����������������C���s&���t�|�j|�jr|�jd�nd|��|���S�)NrU���rB���)r!���rf���rg���ro���rn���r���r���r����__getattr__����s����zAloHostMixiDx.__getattr__c���������������������s ����|�j��|�j|t�|��I�d�H�S�ri���)rf���r=���rg���r<����dumps)r���r0����kwargsr���r���r����__call__����s����zAloHostMixiDx.__call__ri���)r]���r^���r_���r`����      __slots__r
+���r���r\���r���ro���rp���rJ���re���rs���r���r���r���r���r!�������s����        r!���)r`���r<���r���ra���r5���rJ���r����typingr���r���r���r���r���Zenumsr���r      ����
+exceptionsr
+���r���r���r
+���r!���r���r���r���r����<module>���s�����!
